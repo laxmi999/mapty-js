@@ -3,20 +3,20 @@
     "development"
   ],
   "hints": {
-    "axe/structure": [
-      "default",
-      {
-        "list": "off"
-      }
-    ],
     "axe/forms": [
       "default",
       {
         "select-name": "off"
       }
     ],
-    "button-type": "off",
-    "disown-opener": "off"
+    "disown-opener": "off",
+    "axe/structure": [
+      "default",
+      {
+        "list": "off"
+      }
+    ],
+    "button-type": "off"
   },
   "browserslist": [
     "defaults",
