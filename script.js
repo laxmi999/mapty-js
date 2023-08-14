@@ -1,11 +1,9 @@
 'use strict';
 
-// prettier-ignore
-// const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
 class Workout {
   date = new Date();
   id = (Date.now() + ' ').slice(-10);
+  clicks = 0;
 
   constructor(coords, distance, duration) {
     // this.date = ...
@@ -15,12 +13,17 @@ class Workout {
     this.duration = duration;
   }
 
-  _setDescription () {
+  _setDescription() {
     // prettier-ignore
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-    this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${months[this.date.getMonth()]} ${this.date.getDate()}`;
+    this.description = `${this.type[0].toUpperCase()}${this.type.slice(1)} on ${
+      months[this.date.getMonth()]
+    } ${this.date.getDate()}`;
+  }
 
+  click() {
+    this.clicks++;
   }
 }
 
@@ -77,11 +80,15 @@ class App {
   #mapEvent;
   #workouts = [];
   constructor() {
+    // Get user's position
     this._getPosition();
+
+    // Get data from local storage
+    this._getLocalStorage();
+
+    // Attach event handlers
     form.addEventListener('submit', this._newWorkout.bind(this));
-
     inputType.addEventListener('change', this._toggleElevationField);
-
     containerWorkouts.addEventListener('click', this._moveToPopup.bind(this));
   }
 
@@ -99,7 +106,7 @@ class App {
   _loadMap(position) {
     const { latitude } = position.coords;
     const { longitude } = position.coords;
-    console.log(`https://www.google.pt/maps/@${latitude},${longitude}`);
+    // console.log(`https://www.google.pt/maps/@${latitude},${longitude}`);
 
     const coords = [latitude, longitude];
 
@@ -117,6 +124,10 @@ class App {
 
     // Handling clicks on map
     this.#map.on('click', this._showForm.bind(this));
+
+    this.#workouts.forEach(work => {
+      this._renderWorkoutMarker(work);
+    });
   }
 
   _showForm(mapE) {
@@ -165,10 +176,10 @@ class App {
       if (
         !validInputs(distance, duration, cadence) ||
         !allPositive(distance, duration, cadence)
-      )
         // !Number.isFinite(distance) ||
         // !Number.isFinite(duration) ||
         // !Number.isFinite(cadence)
+      )
         return alert('Inputs have to be positive numbers!');
 
       workout = new Running([lat, lng], distance, duration, cadence);
@@ -192,7 +203,7 @@ class App {
     // console.log(workout);
 
     // Render workout on map as marker
-    this.renderWorkoutMarker(workout);
+    this._renderWorkoutMarker(workout);
 
     // Render workout on list
     this._renderWorkout(workout);
@@ -201,7 +212,7 @@ class App {
     this._hideForm();
   }
 
-  renderWorkoutMarker(workout) {
+  _renderWorkoutMarker(workout) {
     L.marker(workout.coords)
       .addTo(this.#map)
       .bindPopup(
@@ -221,7 +232,7 @@ class App {
 
   _renderWorkout(workout) {
     let html = `
-      <li class="workout workout--${workout.type}" data-id=${workout.id}>
+      <li class="workout workout--${workout.type}" data-id="${workout.id}">
         <h2 class="workout__title">${workout.description}</h2>
         <div class="workout__details">
           <span class="workout__icon">${
@@ -273,19 +284,40 @@ class App {
     console.log(workoutEl);
 
     const workout = this.#workouts.find(work => {
-      work.id === workoutEl.dataset.id;
+      console.log(work.id);
       console.log(work);
+      console.log(typeof work.id, typeof workoutEl.dataset.id);
+      return work.id === workoutEl.dataset.id;
     });
     console.log(workout);
 
-    // this.#map.setView(
-    //   workout.coords,
-    //   this.#mapZoomLevel,
-    //   (animate = true),
-    //   (pan = {
-    //     duration: 1,
-    //   })
-    // );
+    this.#map.setView(workout.coords, this.#mapZoomLevel, {
+      animate: true,
+      pan: {
+        duration: 1,
+      },
+    });
+  }
+
+  _setLocalStorage() {
+    localStorage.setItem('workouts', JSON.stringify(this.#workouts));
+  }
+
+  _getLocalStorage() {
+    const data = JSON.parse(localStorage.getItem('workouts'));
+
+    if (!data) return;
+
+    this.#workouts = data;
+
+    this.#workouts.forEach(work => {
+      this._renderWorkout(work);
+    });
+  }
+
+  reset() {
+    localStorage.removeItem('workouts');
+    location.reload();
   }
 }
 
