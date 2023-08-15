@@ -3,7 +3,7 @@
 class Workout {
   date = new Date();
   id = (Date.now() + ' ').slice(-10);
-  clicks = 0;
+  // clicks = 0;
 
   constructor(coords, distance, duration) {
     // this.date = ...
@@ -22,9 +22,9 @@ class Workout {
     } ${this.date.getDate()}`;
   }
 
-  click() {
-    this.clicks++;
-  }
+  // click() {
+  //   this.clicks++;
+  // }
 }
 
 class Running extends Workout {
@@ -210,6 +210,9 @@ class App {
 
     // Hide form and clear input fields
     this._hideForm();
+
+    // Set local storage to all workouts
+    this._setLocalStorage();
   }
 
   _renderWorkoutMarker(workout) {
@@ -281,15 +284,13 @@ class App {
   _moveToPopup(e) {
     const workoutEl = e.target.closest('.workout');
     if (!workoutEl) return;
-    console.log(workoutEl);
+    // console.log(workoutEl);
 
     const workout = this.#workouts.find(work => {
-      console.log(work.id);
-      console.log(work);
       console.log(typeof work.id, typeof workoutEl.dataset.id);
       return work.id === workoutEl.dataset.id;
     });
-    console.log(workout);
+    // console.log(workout);
 
     this.#map.setView(workout.coords, this.#mapZoomLevel, {
       animate: true,
